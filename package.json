@@ -1,0 +1,68 @@
+{
+  "name": "admag",
+  "description": "ADMAG - Electron Application",
+  "version": "0.1.0",
+  "private": true,
+  "author": {
+    "name": "Muzammil Shakir",
+    "email": "muzammil.shakir786@gmail.com",
+    "url": "https://github.com/muzammilshakir"
+  },
+  "build": {
+    "appId": "com.my-website.admag",
+    "productName": "ADMAG - Billboard",
+    "copyright": "Copyright © 2021 ${author}",
+    "mac": {
+      "category": "public.app-category.utilities"
+    },
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
+  },
+  "dependencies": {
+    "axios": "^0.24.0",
+    "cron": "^1.8.2",
+    "electron-is-dev": "^1.0.1",
+    "moment": "^2.29.1",
+    "node-cron": "^3.0.0",
+    "react": "^16.8.3",
+    "react-dom": "^16.8.3",
+    "react-player": "^2.9.0",
+    "react-scripts": "2.1.5",
+    "ytdl-core": "^4.9.1"
+  },
+  "homepage": "./",
+  "main": "public/electron.js",
+  "scripts": {
+    "start": "rescripts start",
+    "build": "rescripts build",
+    "test": "rescripts test",
+    "eject": "react-scripts eject",
+    "electron-dev": "concurrently \"BROWSER=none npm run start\" \"wait-on http://localhost:3000 && electron .\"",
+    "postinstall": "electron-builder install-app-deps",
+    "preelectron-pack": "yarn build",
+    "electron-pack": "build -l"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "devDependencies": {
+    "@rescripts/cli": "^0.0.10",
+    "@rescripts/rescript-env": "^0.0.5",
+    "concurrently": "^4.1.0",
+    "electron": "^4.0.6",
+    "electron-builder": "^20.38.5",
+    "typescript": "^3.3.3333",
+    "wait-on": "^3.2.0"
+  }
+}
