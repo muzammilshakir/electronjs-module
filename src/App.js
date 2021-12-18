@@ -3,8 +3,8 @@ import ReactPlayer from 'react-player';
 import axios from 'axios';
 import { promises as fsp } from 'fs';
 import moment from 'moment';
-
 import './App.css';
+import RegistrationForm from './registerForm';
 var cron = require('node-cron');
 const fs = window.require("fs"); 
 const path = require("path");
@@ -26,6 +26,7 @@ class App extends Component {
       schedules: [],
       downloadable: [],
       downloaded: [],
+      registered: false
     }
     this.gettingData = this.gettingData.bind(this) ;
     this.download = this.download.bind(this) ;
@@ -169,10 +170,21 @@ class App extends Component {
 
   //   }
   // }
+  changeRegister = () =>{
+    this.setState({registered:true})
+    console.log("REGISTER SATATE",this.state.registered)
+  }
+
   render() {
     return ( 
       <div className="App">
-        <ReactPlayer 
+        {/* {this.state.registered ? 
+        <> */}
+        <RegistrationForm registered = {this.state.registered} changeRegister={this.changeRegister}/>
+        {/* </> 
+        :
+        <>
+        <ReactPlayer
           url= {'./Download/' + this.state.activeVideoFile + '.mp4'}
           width = '100%'
           height = '100%'
@@ -180,6 +192,10 @@ class App extends Component {
           muted = { true }
           loop = { true }
         />
+        </>
+        } */}
+        
+       
       </div>
     );
   }
