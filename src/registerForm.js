@@ -193,7 +193,7 @@ function RegistrationForm( props ) {
                 <Button type="submit" variant="contained">Submit</Button>
 
             </form>
-            <Button onClick={(e)=> {changeState(e)}} variant="contained">Submit</Button>
+            {/* <Button onClick={(e)=> {changeState(e)}} variant="contained">Submit</Button> */}
 
         </div>
     );
