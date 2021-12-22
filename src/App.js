@@ -22,7 +22,7 @@ function App() {
   const [schedules, setSchedules] = useState([])
   const [downloadable, setDownloadable] = useState([])
   const [downloaded, setDownloaded] = useState([])
-  const [registered, setRegistered] = useState(false)
+  const [registered, setRegistered] = useState(true)
 
   useEffect(() => {
     // Getting Data
@@ -35,7 +35,12 @@ function App() {
       })).data;
       console.log("Pulse Sent: ", pulseStatus);
     });
-  },[])
+  }, [])
+
+  const gettingBillboard = async () => {
+      
+  }
+
   const gettingData = async () => {
     try {
       const downloadedJSON = await fsp.readFile(path.join(downloadDir, 'downloaded.json'), 'utf-8')
@@ -79,31 +84,22 @@ function App() {
           let h = moment(schedules[s].fromTime, "hh:mm").hours()
           cron.schedule(`${m} ${h} * * *`, () => {
             setActiveVideoFile(schedules[s].advertisementID.name)
-            
+
           });
           m = moment(schedules[s].toTime, "hh:mm").minutes()
           h = moment(schedules[s].toTime, "hh:mm").hours()
           cron.schedule(`${m} ${h} * * *`, () => {
             setActiveVideoFile('FAST-AD')
-          
+
           });
         }
       }
-      // console.log("Schedule: ", schedules[0].fromTime) ;
-      // console.log(moment(schedules[0].fromTime)) ;
-      // console.log(moment(schedules[0].fromTime, "hh:mm").minutes()) ;
       setAdvertisements(advertisements)
       setSchedules(schedules)
       setBillboards(billboards)
       setDownloadable(downloadable)
       setDownloaded(downloaded)
-      // this.setState({
-      //   advertisements: advertisements,
-      //   schedules: schedules,
-      //   billboards: billboards,
-      //   downloadable: downloadable,
-      //   downloaded: downloaded
-      // })
+
     }
     catch (error) {
       console.log(error);
@@ -141,9 +137,7 @@ function App() {
               const updatedDownloaded = [...downloaded, { adName: fileName, fileName: fileName + extension, downloaded: true }];
               const updatee = await fsp.writeFile(path.join(downloadDir, 'downloaded.json'), JSON.stringify(updatedDownloaded))
               setDownloaded(updatedDownloaded)
-              // this.setState({
-              //   downloaded: updatedDownloaded,
-              // });
+
             }
           });
         });
@@ -166,15 +160,24 @@ function App() {
 
   return (
     <div className="App">
-      {console.log("Active video",activeVideoFile)}
-      <ReactPlayer
-        url={'./Download/' + activeVideoFile + '.mp4'}
-        width='100%'
-        height='100%'
-        playing={true}
-        muted={true}
-        loop={true}
-      />
+      {registered ?
+        <>
+          <RegistrationForm registered = {registered} setRegistered = {setRegistered} />
+        </>
+        :
+        <>
+          {console.log("Active video", activeVideoFile)}
+          <ReactPlayer
+            url={'./Download/' + activeVideoFile + '.mp4'}
+            width='100%'
+            height='100%'
+            playing={true}
+            muted={true}
+            loop={true}
+          />
+        </>
+      }
+
     </div>
   );
 
