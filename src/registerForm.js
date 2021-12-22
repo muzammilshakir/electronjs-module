@@ -32,8 +32,8 @@ function RegistrationForm(props) {
         try {
             const response = await axios.post("https://admag-server.herokuapp.com/api/billboard", header);
             console.log(response)
-            console.log(response.request.response._id)
-            
+            console.log("ID",response.data.data._id)
+
         }
         catch (error) {
             console.log("Error", error)
