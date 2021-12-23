@@ -1,11 +1,15 @@
-import React, { Component, useState } from 'react';
-import { Button, Grid, TextField, MenuItem ,Box} from '@mui/material';
-import axios from 'axios';
+import React, { useState } from 'react';
+import { useMutation, useQueryClient } from 'react-query';
+import { Button, Grid, TextField, MenuItem, Box } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
-// import DoneIcon from '@mui/icons-material/Done';
-// import { useSnackbar } from 'notistack';
-
+import { addBillboard } from "./utils/index";
 function RegistrationForm(props) {
+    const queryClient = useQueryClient();
+    const { isLoading, mutate: createBillboard } = useMutation(addBillboard, {
+        onSuccess: () => {
+            queryClient.invalidateQueries('billboard');
+        },
+    });
     // const [registered,setRegistered] = useState(props.registered)
     const [name, setName] = useState("")
     const [locationName, setLocationName] = useState("")
@@ -15,33 +19,28 @@ function RegistrationForm(props) {
     const [fromActiveTime, setFromActiveTime] = useState("")
     const [toActiveTime, setToActiveTime] = useState("")
     const [pricePerMinute, setPricePerMinute] = useState(0)
-    const [isLoading] =useState(false)
-    const [isSuccess] =useState(false)
     const submitForm = async (e) => {
         e.preventDefault();
         const header = {
             name: name,
             locationName: locationName,
             locationURL: locationURL,
-            cameraIP: cameraIP,
+            cameraIP: cameraAvailable ? cameraIP : " ",
             cameraAvailable: cameraAvailable,
             fromActiveTime: fromActiveTime,
             toActiveTime: toActiveTime,
             pricePerMinute: parseInt(pricePerMinute),
         }
         try {
-            const response = await axios.post("https://admag-server.herokuapp.com/api/billboard", header);
-            console.log(response)
-            console.log("ID",response.data.data._id)
+            createBillboard(header);
+
+            props.setRegistered(!props.registered)
 
         }
         catch (error) {
             console.log("Error", error)
+
         }
-    }
-    const changeState = () => {
-        props.setRegistered(!props.registered)
-        console.log("Button clicked", props.registered)
     }
 
     return (
@@ -57,7 +56,7 @@ function RegistrationForm(props) {
                     spacing={2}
                     sx={{ mb: 4 }}
                 >
-                    <Grid 
+                    <Grid
                         item
                         md={3}
                     ></Grid>
@@ -95,8 +94,8 @@ function RegistrationForm(props) {
                     spacing={2}
                     sx={{ mb: 4 }}
                 >
-                    
-                    <Grid 
+
+                    <Grid
                         item
                         md={3}
                     ></Grid>
@@ -134,7 +133,7 @@ function RegistrationForm(props) {
                     spacing={2}
                     sx={{ mb: 4 }}
                 >
-                    <Grid 
+                    <Grid
                         item
                         md={3}
                     ></Grid>
@@ -177,7 +176,7 @@ function RegistrationForm(props) {
                     container
                     spacing={2}
                     sx={{ mb: 4 }}>
-                        <Grid 
+                    <Grid
                         item
                         md={3}
                     ></Grid>
@@ -224,7 +223,7 @@ function RegistrationForm(props) {
                     justifyContent: 'center',
                     m: 1
                 }}>
-                    {!isLoading && !isSuccess ?
+                    {!isLoading ?
                         <Button
                             type="submit"
                             variant="contained"
@@ -241,20 +240,9 @@ function RegistrationForm(props) {
                             {<CircularProgress color="primary" />}
                         </Button>
                         : <></>}
-                    {isSuccess ?
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            disabled
-                        >
-                            {/* {<DoneIcon />} */}
-                        </Button>
-                        : <></>}
 
                 </Box>
             </form>
-
-            <Button onClick={(e) => { changeState() }} variant="contained">Submit To</Button>
 
         </div>
     );

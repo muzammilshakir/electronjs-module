@@ -42,6 +42,7 @@
     "react-bootstrap": "^2.0.3",
     "react-dom": "latest",
     "react-player": "^2.9.0",
+    "react-query": "^3.34.5",
     "react-scripts": "2.1.5",
     "ytdl-core": "^4.9.1"
   },
@@ -52,6 +53,7 @@
     "build": "rescripts build",
     "test": "rescripts test",
     "eject": "react-scripts eject",
+    "start-electron": "wait-on http://localhost:3000 && electron .",
     "electron-dev": "concurrently \"BROWSER=none&&npm run start\" \"wait-on http://localhost:3000 && electron .\"",
     "electron-dev-win": "concurrently \"SET BROWSER=none&&npm run start\" \"wait-on http://localhost:3000 && electron .\"",
     "postinstall": "electron-builder install-app-deps",
