@@ -51,6 +51,7 @@ function App() {
       let ht = moment(gBillboards.toActiveTime, "hh:mm").hours()
       let mf = moment(gBillboards.fromActiveTime, "hh:mm").minutes()
       let hf = moment(gBillboards.fromActiveTime, "hh:mm").hours()
+      
       if (gBillboards.fromActiveTime <= currentTime && gBillboards.toActiveTime > currentTime) {
         setOnline(true);
         cron.schedule(`${mt} ${ht} * * *`, () => {
@@ -145,10 +146,10 @@ function App() {
                   scheduleID: gSchedules[i]._id,
                 });
               }
-              let mf = moment(gSchedules[i].fromDateTime).format("mm");
-              let hf = moment(gSchedules[i].fromDateTime).format("hh");
-              let mt = moment(gSchedules[i].toDateTime).format("mm");
-              let ht = moment(gSchedules[i].toDateTime).format("hh");
+              let mf = moment(gSchedules[i].fromDateTime).minutes();
+              let hf = moment(gSchedules[i].fromDateTime).hours();
+              let mt = moment(gSchedules[i].toDateTime).minutes();
+              let ht = moment(gSchedules[i].toDateTime).hours();
               cron.schedule(`${mf} ${hf} * * *`, () => {
                 setActiveAdIndex(adIndex);
               });
