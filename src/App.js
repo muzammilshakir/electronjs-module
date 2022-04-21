@@ -46,8 +46,14 @@ function App() {
       const currentTime = moment();
       const fromTime = moment();
       const toTime = moment();
-      const fromTimeBillboard = moment(gBillboards.fromActiveTime);
-      const toTimeBillboard = moment(gBillboards.toActiveTime);
+      // Thu Apr 21 2022 13:30:48 GMT+0500
+      const fromTimeBillboard = moment(gBillboards.fromActiveTime, "ddd MMM DD YYYY HH:mm:ss Z");
+      const toTimeBillboard = moment(gBillboards.toActiveTime, "ddd MMM DD YYYY HH:mm:ss Z");
+      console.log({
+        hour: toTimeBillboard.hour(),
+        minute: toTimeBillboard.minute(),
+        second: toTimeBillboard.second(),
+      });
       fromTime.set({
         hour: fromTimeBillboard.hour(),
         minute: fromTimeBillboard.minute(),
@@ -58,12 +64,16 @@ function App() {
         minute: toTimeBillboard.minute(),
         second: toTimeBillboard.second(),
       });
+      // console.log("fromTime: ", fromTimeBillboard);
+      // console.log("toTime: ", toTimeBillboard);
+      // console.log("fromTime: ", fromTime);
+      // console.log("toTime: ", toTime);
       let mt = toTime.minutes();
       let ht = toTime.hours();
       let mf = fromTime.minutes();
       let hf = fromTime.hours();
       if (fromTime.isBefore(currentTime) && toTime.isAfter(currentTime)) {
-        console.log("Hello World !");
+        console.log("Hello Wodd rld !");
         setOnline(true);
         cron.schedule(`${mt} ${ht} * * *`, () => {
           setOnline(false);
@@ -89,7 +99,8 @@ function App() {
         let _allAds = allAds;
         for (let i = 0; i < gSchedules.length; i++) {
           let currentTime = moment(); 
-          let fromTime = moment(gSchedules[i].fromDateTime);
+          let fromTime = moment(gSchedules[i].fromDateTime, "ddd MMM DD YYYY HH:mm:ss Z");
+          console.log(fromTime.isValid()) ;
           if (fromTime.isAfter(currentTime)) {
             console.log(gSchedules[i]) ;
             let adIndex = _allAds.length;
@@ -101,10 +112,11 @@ function App() {
               type: gSchedules[i].advertisement.isStatic ? "Image" : "Video",
               scheduleID: gSchedules[i]._id,
             });
-            let mf = moment(gSchedules[i].fromDateTime).minutes();
-            let hf = moment(gSchedules[i].fromDateTime).hours();
-            let mt = moment(gSchedules[i].toDateTime).minutes();
-            let ht = moment(gSchedules[i].toDateTime).hours();
+            let mf = moment(gSchedules[i].fromDateTime, "ddd MMM DD YYYY HH:mm:ss Z").minutes();
+            let hf = moment(gSchedules[i].fromDateTime, "ddd MMM DD YYYY HH:mm:ss Z").hours();
+            let mt = moment(gSchedules[i].toDateTime, "ddd MMM DD YYYY HH:mm:ss Z").minutes();
+            let ht = moment(gSchedules[i].toDateTime, "ddd MMM DD YYYY HH:mm:ss Z").hours();
+            console.log(mf, hf, mt, ht);
             cron.schedule(`${mf} ${hf} * * *`, () => {
               setActiveAdIndex(adIndex);
             });
@@ -146,10 +158,11 @@ function App() {
                         <ReactPlayer
                           // url={'./Download/' + allAds[activeAdIndex].id + '.mp4'}
                           url={allAds[activeAdIndex].fileName}
+                          // url = "./Download/FAST-AD.mp4"
                           width='100%'
                           height='100%'
                           playing={true}
-                          muted={false}
+                          muted={true}
                           loop={true}
                         />
                         :
