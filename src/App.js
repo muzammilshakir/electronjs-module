@@ -21,7 +21,7 @@ function App() {
       id: " ",
       fileName: "./Download/FAST-AD.mp4",
       type: "Video",
-      scheduleID: " ",
+      scheduleID: null,
     }
   ]);
   useEffect(() => {
@@ -31,7 +31,9 @@ function App() {
       else setRegistered(true);
       cron.schedule(`*/1 * * * *`, () => {
         let _billID = billID === "" ? null : billID;
-        let _scheduleID = allAds[activeAdIndex].scheduleID === " " ? null : allAds[activeAdIndex].scheduleID;
+        let _scheduleID = allAds[activeAdIndex].scheduleID
+        // let _scheduleID = allAds[activeAdIndex].scheduleID === " " ? null : allAds[activeAdIndex].scheduleID;
+        // let _scheduleID = allAds[activeAdIndex].scheduleID === " " ? null : allAds[activeAdIndex].scheduleID;
         axios.post(API_URL + '/pulse', {
           'isAlive': true,
           'billboard': _billID,
