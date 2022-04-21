@@ -60,7 +60,7 @@ export const getSchedules = async () => {
         const res = await axios.get(`${API_URL}/schedule/`);
         console.log(res.data) ;
         let sc = res.data.filter((d) => {
-            return d.billboard._id === billID ;
+            return d.billboard._id === billID && d.order.isApproved === true ;
         });
         return sc;
     }
