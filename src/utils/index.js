@@ -31,7 +31,8 @@ export const getBillboards = async () => {
     const billID = await readFromBillboardFile();
     if (billID !== "") {
         const res = await axios.get(`${API_URL}/billboard/${billID}`);
-        return res.data.data[0];
+        // console.log(res) ;
+        return res.data;
     }
     else {
         return {}
@@ -39,7 +40,7 @@ export const getBillboards = async () => {
 }
 export const addBillboard = async (data) => {
     const res = await axios.post(`${API_URL}/billboard/`, data);
-    await writeToBillboardFile(res.data.data._id) ;
+    await writeToBillboardFile(res.data._id) ;
 }    
 export const addPulse = async (data) => {
     let res = await axios.post(`${API_URL}/pulse/`, data);
@@ -48,16 +49,18 @@ export const addPulse = async (data) => {
 
 export const getAdvertisemnets = async () => {
     const res = await axios.get(`${API_URL}/advertisement/`);
-    return res.data.data;
+    return res.data;
 }
 
 
 export const getSchedules = async () => {
     const billID = await readFromBillboardFile();
+    console.log(billID) ;
     if (billID !== "") {
         const res = await axios.get(`${API_URL}/schedule/`);
-        let sc = res.data.data.filter((d) => {
-            return d.billboardID === billID ;
+        console.log(res.data) ;
+        let sc = res.data.filter((d) => {
+            return d.billboard._id === billID ;
         });
         return sc;
     }

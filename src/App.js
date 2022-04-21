@@ -11,6 +11,14 @@ var cron = require('node-cron');
 const fs = window.require("fs");
 const path = require("path");
 const youtubeDownloader = require("ytdl-core");
+import ReactPlayer from 'react-player' ;
+// var AWS = require('aws-sdk');
+// AWS.config.update({
+//   accessKeyId: 'AKIAWT5IMLAKJS4DEBN7',
+//   secretAccessKey: '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',
+//   region: "ap-south-1"
+// });
+// const s3 = new AWS.S3();
 
 let downloadDir = "./public/Download";
 const API_URL = "https://admag-server.herokuapp.com/api";
@@ -18,7 +26,7 @@ const API_URL = "https://admag-server.herokuapp.com/api";
 function App() {
   // const { mutate: createPulse } = useMutation(addPulse);
   const { isLoading: isLoadingSc, isSuccess: isSuccessSc, data: gSchedules } = useQuery("schedule", getSchedules);
-  const { isLoading: isLoadingAd, isSuccess: isSuccessAd, data: gAdvertisemnets } = useQuery("advertisement", getAdvertisemnets);
+  // const { isLoading: isLoadingAd, isSuccess: isSuccessAd, data: gAdvertisemnets } = useQuery("advertisement", getAdvertisemnets);
   const { isLoading: isLoadingBil, isSuccess: isSuccessBil, data: gBillboards } = useQuery("billboard", getBillboards);
   const [online, setOnline] = useState(false);
   const [registered, setRegistered] = useState(false);
@@ -43,28 +51,42 @@ function App() {
       });
     }
     checkingAlreadyRegistered();
-  },[])
+  }, [])
   useEffect(() => {
     if (!isLoadingBil && isSuccessBil) {
-      const currentTime = moment().format('hh:mm');
-      let mt = moment(gBillboards.toActiveTime, "hh:mm").minutes()
-      let ht = moment(gBillboards.toActiveTime, "hh:mm").hours()
-      let mf = moment(gBillboards.fromActiveTime, "hh:mm").minutes()
-      let hf = moment(gBillboards.fromActiveTime, "hh:mm").hours()
-      
-      if (gBillboards.fromActiveTime <= currentTime && gBillboards.toActiveTime > currentTime) {
+      const currentTime = moment();
+      const fromTime = moment();
+      const toTime = moment();
+      const fromTimeBillboard = moment(gBillboards.fromActiveTime);
+      const toTimeBillboard = moment(gBillboards.toActiveTime);
+      fromTime.set({
+        hour: fromTimeBillboard.hour(),
+        minute: fromTimeBillboard.minute(),
+        second: fromTimeBillboard.second(),
+      });
+      toTime.set({
+        hour: toTimeBillboard.hour(),
+        minute: toTimeBillboard.minute(),
+        second: toTimeBillboard.second(),
+      });
+      let mt = toTime.minutes();
+      let ht = toTime.hours();
+      let mf = fromTime.minutes();
+      let hf = fromTime.hours();
+      if (fromTime.isBefore(currentTime) && toTime.isAfter(currentTime)) {
+        console.log("Hello World !");
         setOnline(true);
         cron.schedule(`${mt} ${ht} * * *`, () => {
           setOnline(false);
         });
       }
-      else if (gBillboards.toActiveTime <= currentTime) {
+      else if (currentTime.isAfter(toTime)) {
         setOnline(false);
         cron.schedule(`${mf} ${hf} * * *`, () => {
           setOnline(true);
         });
       }
-      else if (gBillboards.fromActiveTime > currentTime) {
+      else if (fromTime.isBefore(currentTime)) {
         setOnline(false);
         cron.schedule(`${mf} ${hf} * * *`, () => {
           setOnline(true);
@@ -120,56 +142,51 @@ function App() {
       });
     };
     const schedulingAdvertisements = async () => {
-      if (!isLoadingSc && !isLoadingAd && !isLoadingBil && isSuccessBil && isSuccessAd && isSuccessSc) {
+      if (!isLoadingSc && !isLoadingBil && isSuccessBil && isSuccessSc) {
         let downloadedAds = await readFromDownloadFile();
         let _allAds = allAds;
         for (let i = 0; i < gSchedules.length; i++) {
-          for (let j = 0; j < gAdvertisemnets.length; j++) {
-            if (gAdvertisemnets[j]._id === gSchedules[i].advertisementID) {
-
-              let adStatus = downloadedAds.filter((ad) => {
-                return ad.id === gAdvertisemnets[j]._id
-              });
-              let adIndex = _allAds.length;
-              if (adStatus.length === 0) {
-                _allAds.push({
-                  id: gAdvertisemnets[j]._id,
-                  downloaded: false,
-                  scheduleID: gSchedules[i]._id,
-                });
-                download(gAdvertisemnets[j].videoURL, gAdvertisemnets[j]._id, adIndex);
-              }
-              else {
-                _allAds.push({
-                  id: gAdvertisemnets[j]._id,
-                  downloaded: true,
-                  scheduleID: gSchedules[i]._id,
-                });
-              }
-              let mf = moment(gSchedules[i].fromDateTime).minutes();
-              let hf = moment(gSchedules[i].fromDateTime).hours();
-              let mt = moment(gSchedules[i].toDateTime).minutes();
-              let ht = moment(gSchedules[i].toDateTime).hours();
-              cron.schedule(`${mf} ${hf} * * *`, () => {
-                setActiveAdIndex(adIndex);
-              });
-              cron.schedule(`${mt} ${ht} * * *`, () => {
-                setActiveAdIndex(0);
-              });
-            }
+          let adStatus = downloadedAds.filter((ad) => {
+            return ad.id === gSchedules[i].advertisement._id;
+          });
+          let adIndex = _allAds.length;
+          if (adStatus.length === 0) {
+            _allAds.push({
+              id: gSchedules[i].advertisement._id,
+              downloaded: false,
+              scheduleID: gSchedules[i]._id,
+            });
+            download(`https://admag.s3.ap-south-1.amazonaws.com/${gSchedules[i].advertisement.videoURL}`, gSchedules[i].advertisement._id, adIndex);
           }
+          else {
+            _allAds.push({
+              id: gSchedules[i].advertisement._id,
+              downloaded: true,
+              scheduleID: gSchedules[i]._id,
+            });
+          }
+          let mf = moment(gSchedules[i].fromDateTime).minutes();
+          let hf = moment(gSchedules[i].fromDateTime).hours();
+          let mt = moment(gSchedules[i].toDateTime).minutes();
+          let ht = moment(gSchedules[i].toDateTime).hours();
+          cron.schedule(`${mf} ${hf} * * *`, () => {
+            setActiveAdIndex(adIndex);
+          });
+          cron.schedule(`${mt} ${ht} * * *`, () => {
+            setActiveAdIndex(0);
+          });
         }
         setAllAds([..._allAds]);
       }
     }
     schedulingAdvertisements();
-  }, [isLoadingSc, isLoadingBil, isLoadingAd])
+  }, [isLoadingSc, isLoadingBil])
 
 
   return (
     <div className="App">
       {
-        ((isLoadingAd || isLoadingBil || isLoadingSc) && (!isSuccessBil || !isSuccessSc || !isSuccessAd)) ?
+        ((isLoadingBil || isLoadingSc) && (!isSuccessBil || !isSuccessSc)) ?
           <img
             alt="Page Loading"
             src={'./Download/page-load.jpg'}
