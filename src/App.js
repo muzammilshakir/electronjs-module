@@ -1,40 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
-import { getSchedules, getAdvertisemnets, getBillboards } from './utils/index';
+import { getSchedules, getBillboards } from './utils/index';
 import ReactPlayer from 'react-player';
-import { readFromBillboardFile, readFromDownloadFile, writeToDownloadFile } from "./utils/index";
+import { readFromBillboardFile } from "./utils/index";
 import moment from 'moment';
 import './App.css';
 import RegistrationForm from './registerForm';
 import axios from "axios";
 var cron = require('node-cron');
-const fs = window.require("fs");
-const path = require("path");
-const youtubeDownloader = require("ytdl-core");
-import ReactPlayer from 'react-player' ;
-// var AWS = require('aws-sdk');
-// AWS.config.update({
-//   accessKeyId: 'AKIAWT5IMLAKJS4DEBN7',
-//   secretAccessKey: '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',
-//   region: "ap-south-1"
-// });
-// const s3 = new AWS.S3();
-
-let downloadDir = "./public/Download";
 const API_URL = "https://admag-server.herokuapp.com/api";
 
 function App() {
-  // const { mutate: createPulse } = useMutation(addPulse);
   const { isLoading: isLoadingSc, isSuccess: isSuccessSc, data: gSchedules } = useQuery("schedule", getSchedules);
-  // const { isLoading: isLoadingAd, isSuccess: isSuccessAd, data: gAdvertisemnets } = useQuery("advertisement", getAdvertisemnets);
   const { isLoading: isLoadingBil, isSuccess: isSuccessBil, data: gBillboards } = useQuery("billboard", getBillboards);
   const [online, setOnline] = useState(false);
   const [registered, setRegistered] = useState(false);
   const [activeAdIndex, setActiveAdIndex] = useState(0);
   const [allAds, setAllAds] = useState([
     {
-      id: "FAST-AD",
-      downloaded: true,
+      id: " ",
+      fileName: "./Download/FAST-AD.mp4",
+      type: "Video",
       scheduleID: " ",
     }
   ]);
@@ -44,9 +30,12 @@ function App() {
       if (billID === "") setRegistered(false);
       else setRegistered(true);
       cron.schedule(`*/1 * * * *`, () => {
+        let _billID = billID === "" ? null : billID;
+        let _scheduleID = allAds[activeAdIndex].scheduleID === " " ? null : allAds[activeAdIndex].scheduleID;
         axios.post(API_URL + '/pulse', {
           'isAlive': true,
-          'billboardID': billID,
+          'billboard': _billID,
+          'schedule': _scheduleID
         });
       });
     }
@@ -95,86 +84,35 @@ function App() {
     }
   }, [isLoadingBil])
   useEffect(() => {
-    const download = (url, fileName, adIndex) => {
-      let extension = ".mp4";
-      let options = {
-        quality: "highest",
-        filter: (format) => format.container === "mp4",
-      };
-      return new Promise((resolve, reject) => {
-        const metadata = youtubeDownloader.getInfo(url);
-        metadata.then((value) => {
-          const { title } = value;
-          const youtube = youtubeDownloader.downloadFromInfo(value, options);
-          youtube.on("response", (response) => {
-            const totalSize = response.headers["content-length"];
-            let dataRead = 0;
-            response.on("data", async (data) => {
-              dataRead += data.length;
-              const percent = dataRead / totalSize;
-              console.log("Filename: ", fileName, " Percentage: ", percent);
-              if (percent === 1) {
-                const downloaded = await readFromDownloadFile();
-                downloaded.push({
-                  id: fileName,
-                  downloaded: true,
-                });
-                await writeToDownloadFile(downloaded);
-                let _allAds = allAds;
-                _allAds[adIndex].downloaded = true;
-                setAllAds([..._allAds]);
-              }
-            });
-          });
-
-          youtube.on("error", () => {
-            reject(new Error(`There was an error while downloading ${title} ${fileName}`));
-          });
-
-          youtube.on("end", () => {
-            resolve({ message: `${fileName} / ${title} finished downloading with success` });
-          });
-
-          youtube.pipe(
-            fs.createWriteStream(path.join(downloadDir, `${fileName}${extension}`))
-          );
-        });
-      });
-    };
     const schedulingAdvertisements = async () => {
       if (!isLoadingSc && !isLoadingBil && isSuccessBil && isSuccessSc) {
-        let downloadedAds = await readFromDownloadFile();
         let _allAds = allAds;
         for (let i = 0; i < gSchedules.length; i++) {
-          let adStatus = downloadedAds.filter((ad) => {
-            return ad.id === gSchedules[i].advertisement._id;
-          });
-          let adIndex = _allAds.length;
-          if (adStatus.length === 0) {
+          let currentTime = moment(); 
+          let fromTime = moment(gSchedules[i].fromDateTime);
+          if (fromTime.isAfter(currentTime)) {
+            console.log(gSchedules[i]) ;
+            let adIndex = _allAds.length;
             _allAds.push({
               id: gSchedules[i].advertisement._id,
-              downloaded: false,
+              fileName: gSchedules[i].advertisement.isStatic ? 
+                        `https://admag.s3.ap-south-1.amazonaws.com/${gSchedules[i].advertisement.imageURL}` : 
+                        `https://admag.s3.ap-south-1.amazonaws.com/${gSchedules[i].advertisement.videoURL}`,
+              type: gSchedules[i].advertisement.isStatic ? "Image" : "Video",
               scheduleID: gSchedules[i]._id,
             });
-            download(`https://admag.s3.ap-south-1.amazonaws.com/${gSchedules[i].advertisement.videoURL}`, gSchedules[i].advertisement._id, adIndex);
-          }
-          else {
-            _allAds.push({
-              id: gSchedules[i].advertisement._id,
-              downloaded: true,
-              scheduleID: gSchedules[i]._id,
+            let mf = moment(gSchedules[i].fromDateTime).minutes();
+            let hf = moment(gSchedules[i].fromDateTime).hours();
+            let mt = moment(gSchedules[i].toDateTime).minutes();
+            let ht = moment(gSchedules[i].toDateTime).hours();
+            cron.schedule(`${mf} ${hf} * * *`, () => {
+              setActiveAdIndex(adIndex);
+            });
+            cron.schedule(`${mt} ${ht} * * *`, () => {
+              setActiveAdIndex(0);
             });
           }
-          let mf = moment(gSchedules[i].fromDateTime).minutes();
-          let hf = moment(gSchedules[i].fromDateTime).hours();
-          let mt = moment(gSchedules[i].toDateTime).minutes();
-          let ht = moment(gSchedules[i].toDateTime).hours();
-          cron.schedule(`${mf} ${hf} * * *`, () => {
-            setActiveAdIndex(adIndex);
-          });
-          cron.schedule(`${mt} ${ht} * * *`, () => {
-            setActiveAdIndex(0);
-          });
+
         }
         setAllAds([..._allAds]);
       }
@@ -204,21 +142,18 @@ function App() {
                 {online ?
                   <>
                     {
-                      allAds[activeAdIndex].downloaded ?
-                        <>
-                          <ReactPlayer
-                            url={'./Download/' + allAds[activeAdIndex].id + '.mp4'}
-                            width='100%'
-                            height='100%'
-                            playing={true}
-                            muted={true}
-                            loop={true}
-                          />
-                        </>
+                      allAds[activeAdIndex].type === "Video" ?
+                        <ReactPlayer
+                          // url={'./Download/' + allAds[activeAdIndex].id + '.mp4'}
+                          url={allAds[activeAdIndex].fileName}
+                          width='100%'
+                          height='100%'
+                          playing={true}
+                          muted={false}
+                          loop={true}
+                        />
                         :
-                        <>
-                          <img alt="Downloading" src={'./Download/downloading.jpg'} width="100%" height="100%" />
-                        </>
+                        <img alt="Offline Mode" src={allAds[activeAdIndex].fileName} />
                     }
                   </>
                   :
