@@ -64,10 +64,10 @@ function App() {
         minute: toTimeBillboard.minute(),
         second: toTimeBillboard.second(),
       });
-      console.log("fromTime: ", fromTimeBillboard);
-      console.log("toTime: ", toTimeBillboard);
-      console.log("fromTime: ", fromTime);
-      console.log("toTime: ", toTime);
+      // console.log("fromTime: ", fromTimeBillboard);
+      // console.log("toTime: ", toTimeBillboard);
+      // console.log("fromTime: ", fromTime);
+      // console.log("toTime: ", toTime);
       let mt = toTime.minutes();
       let ht = toTime.hours();
       let mf = fromTime.minutes();
@@ -166,7 +166,7 @@ function App() {
                           loop={true}
                         />
                         :
-                        <img alt="Offline Mode" src={allAds[activeAdIndex].fileName} />
+                        <img alt="Offline Mode" src={allAds[activeAdIndex].fileName} width="100%" />
                     }
                   </>
                   :
