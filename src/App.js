@@ -32,6 +32,7 @@ function App() {
       cron.schedule(`*/1 * * * *`, () => {
         let _billID = billID === "" ? null : billID;
         let _scheduleID = allAds[activeAdIndex].scheduleID
+        console.log(allAds[activeAdIndex]) ;
         // let _scheduleID = allAds[activeAdIndex].scheduleID === " " ? null : allAds[activeAdIndex].scheduleID;
         // let _scheduleID = allAds[activeAdIndex].scheduleID === " " ? null : allAds[activeAdIndex].scheduleID;
         axios.post(API_URL + '/pulse', {
